@@ -10,11 +10,20 @@
 #define PIPE  3
 #define LIST  4
 #define BACK  5
-
+#define HISTORY  6
+#define MAX_HISTORY 16
 #define MAXARGS 10
+#define NULL (0)
+int histSize = 0;
+typedef struct hist hist;
 
 struct cmd {
   int type;
+};
+
+struct hist{
+	char * histBuff;
+	hist *next;	
 };
 
 struct execcmd {
@@ -141,12 +150,44 @@ getcmd(char *buf, int nbuf)
   return 0;
 }
 
+
+
+ hist* histAppandTail(hist* historyLst, char * dataBuf){
+
+ 	histSize++;
+ 	hist* current = historyLst;
+ 	hist* toAdd = (hist*)malloc(sizeof(hist));
+ 	toAdd->next = NULL;
+ 	toAdd->histBuff = strcpy(toAdd->histBuff, dataBuf);
+ 	//first time we add to the list
+ 	if (current == NULL){
+ 		current = toAdd;
+ 		return current;
+ 	}
+ 	//next additions
+ 	while (current->next != NULL){
+ 		current = current->next;
+ 	}
+ 	current = toAdd;
+ 	return current;
+ }
+
+ void print_history (hist* history){
+ 	int i = 0;
+ 	hist* cur = history;
+ 	while (cur != NULL){
+ 		printf(1, "%d) %s\n", i, cur->histBuff);
+ 		cur = cur->next;
+ 	}
+ }
+
+
 int
 main(void)
-{
+{	
   static char buf[100];
   int fd;
-
+  //hist * historyLst = NULL;
   // Ensure that three file descriptors are open.
   while((fd = open("console", O_RDWR)) >= 0){
     if(fd >= 3){
@@ -164,10 +205,13 @@ main(void)
         printf(2, "cannot cd %s\n", buf+3);
       continue;
     }
-    if(fork1() == 0)
-      runcmd(parsecmd(buf));
+    if(fork1() == 0){
+    	printf(2, "%c\n", buf[0]);
+      	runcmd(parsecmd(buf));
+    }
     wait();
   }
+
   exit();
 }
 

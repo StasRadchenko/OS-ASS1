@@ -12,6 +12,7 @@
 #define BACK  5
 #define HISTORY  6
 #define MAX_HISTORY 16
+#define MAX_LINE_LEN 128
 #define MAXARGS 10
 #define NULL (0)
 int histSize = 0;
@@ -141,24 +142,27 @@ runcmd(struct cmd *cmd)
 
 int
 getcmd(char *buf, int nbuf)
-{
-  printf(2, "$ ");
-  memset(buf, 0, nbuf);
-  gets(buf, nbuf);
-  if(buf[0] == 0) // EOF
-    return -1;
-  return 0;
+	{
+	  printf(2, "$ ");
+	  memset(buf, 0, nbuf);
+	  gets(buf, nbuf);
+	  if(buf[0] == 0) // EOF
+	    return -1;
+	  return 0;
 }
 
 
 
  hist* histAppandTail(hist* historyLst, char * dataBuf){
-
- 	histSize++;
+ 	char * temp = NULL;
+ 	histSize = histSize + 1;
  	hist* current = historyLst;
  	hist* toAdd = (hist*)malloc(sizeof(hist));
  	toAdd->next = NULL;
- 	toAdd->histBuff = strcpy(toAdd->histBuff, dataBuf);
+ 	temp = strcpy(dataBuf, temp);
+ 	toAdd->histBuff = temp;
+ 	//strcpy(toAdd->histBuff, dataBuf);
+ 	printf(1, "%s\n", toAdd->histBuff);
  	//first time we add to the list
  	if (current == NULL){
  		current = toAdd;
@@ -168,8 +172,8 @@ getcmd(char *buf, int nbuf)
  	while (current->next != NULL){
  		current = current->next;
  	}
- 	current = toAdd;
- 	return current;
+ 	current->next = toAdd;
+ 	return historyLst;
  }
 
  void print_history (hist* history){
@@ -178,16 +182,26 @@ getcmd(char *buf, int nbuf)
  	while (cur != NULL){
  		printf(1, "%d) %s\n", i, cur->histBuff);
  		cur = cur->next;
+ 		i++;
  	}
  }
 
+int ourComp(char * target, char * toComp){
+	int len_comp = strlen (toComp);
+	char copy [len_comp];
+	int i;
+	for (i = 0 ; i< len_comp ; i++){
+		copy[i] = target[i];
+	}
+	return strcmp(toComp,copy);
+}
 
 int
 main(void)
-{	
+{		
   static char buf[100];
   int fd;
-  //hist * historyLst = NULL;
+  hist * historyLst = NULL;
   // Ensure that three file descriptors are open.
   while((fd = open("console", O_RDWR)) >= 0){
     if(fd >= 3){
@@ -205,13 +219,21 @@ main(void)
         printf(2, "cannot cd %s\n", buf+3);
       continue;
     }
-    if(fork1() == 0){
-    	printf(2, "%c\n", buf[0]);
-      	runcmd(parsecmd(buf));
+    if (strlen(buf)>MAX_LINE_LEN){
+    	printf(2, "%s\n", "Error: Command is to long, more than 128 chars");
+    }
+	else{
+		historyLst = histAppandTail(historyLst, buf);
+		printf(1, "%d\n", histSize);
+		if (ourComp(buf, "history")==0){
+			print_history(historyLst);   		
+		}
+    	else if(fork1() == 0){
+      		runcmd(parsecmd(buf));
+      	} 	
     }
     wait();
   }
-
   exit();
 }
 

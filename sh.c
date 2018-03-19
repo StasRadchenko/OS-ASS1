@@ -22,8 +22,9 @@ struct cmd {
   int type;
 };
 
+//history linked list data-structure
 struct hist{
-	char * histBuff;
+	char  histBuff[MAX_LINE_LEN];
 	hist *next;	
 };
 
@@ -152,40 +153,49 @@ getcmd(char *buf, int nbuf)
 }
 
 
-
+//the method adds the next history command link to the history linked-list data structure.
+// historyLst - pointer to the head of the list, dataBuf - pointer to the command buffer.
  hist* histAppandTail(hist* historyLst, char * dataBuf){
- 	char * temp = NULL;
- 	histSize = histSize + 1;
- 	hist* current = historyLst;
- 	hist* toAdd = (hist*)malloc(sizeof(hist));
- 	toAdd->next = NULL;
- 	temp = strcpy(dataBuf, temp);
- 	toAdd->histBuff = temp;
- 	//strcpy(toAdd->histBuff, dataBuf);
- 	printf(1, "%s\n", toAdd->histBuff);
- 	//first time we add to the list
- 	if (current == NULL){
- 		current = toAdd;
- 		return current;
+ 	if (histSize<16){ //check if the list is full
+	 	histSize = histSize + 1; //increase the number of recorded commands
+	 	hist* current = historyLst;
+	 	hist* toAdd = (hist*)malloc(sizeof(hist)); //allocate space to the next link
+	 	toAdd->next = NULL;
+	 	strcpy(toAdd->histBuff, dataBuf); //copy the command buffer data to the link's buffer
+	 	//first time we add to the list
+	 	if (current == NULL){
+	 		current = toAdd;
+	 		return current;
+	 	}
+	 	//next additions
+	 	while (current->next != NULL){ //get to the tail position
+	 		current = current->next;
+	 	}
+	 	current->next = toAdd;
  	}
- 	//next additions
- 	while (current->next != NULL){
- 		current = current->next;
+ 	else{
+ 		//if thhe list is full, we'll decrease its size by 1 and shift the entire list,
+ 		//so that the second link is now the head. now we can use the method accordingly.
+ 		histSize = histSize - 1;
+ 		historyLst = histAppandTail(historyLst->next,dataBuf);
  	}
- 	current->next = toAdd;
+
+
  	return historyLst;
  }
 
+//prints the entire content of the history linked-list
  void print_history (hist* history){
  	int i = 0;
  	hist* cur = history;
  	while (cur != NULL){
- 		printf(1, "%d) %s\n", i, cur->histBuff);
+ 		printf(1, "%d) %s", i, cur->histBuff);
  		cur = cur->next;
  		i++;
  	}
  }
 
+//compares a given string to a target's prefix.
 int ourComp(char * target, char * toComp){
 	int len_comp = strlen (toComp);
 	char copy [len_comp];
@@ -194,6 +204,36 @@ int ourComp(char * target, char * toComp){
 		copy[i] = target[i];
 	}
 	return strcmp(toComp,copy);
+}
+
+void activateHistoryCommand(hist* history, int index){
+	int i;
+	hist* cur = history;
+	for (i=0; i<index; i++){
+		cur = cur->next;
+	}
+	
+	//printf(2, "debug0: %s\n", cur->histBuff);
+	if (ourComp(cur->histBuff, "history")==0){
+			if(ourComp (cur->histBuff,"history -l")==0){//to check that there is integer in buf[11]
+				int hist_index = atoi(cur->histBuff+11);//buf+11 is the offset to the number
+				if (hist_index>15){
+					printf(2, "%s\n", "Error: Max index is 15!");
+				}
+				else{
+					//printf(2, "debug1: %s\n", cur->histBuff);
+					activateHistoryCommand(history, hist_index);
+				}
+			}
+			else{
+				//printf(2, "debug2: %s\n", cur->histBuff);
+				print_history(history);
+			}   		
+		}
+    	else if(fork1() == 0){
+    		//printf(2, "debug3: %s ", cur->histBuff);
+      		runcmd(parsecmd(cur->histBuff));
+      	}
 }
 
 int
@@ -224,9 +264,20 @@ main(void)
     }
 	else{
 		historyLst = histAppandTail(historyLst, buf);
-		printf(1, "%d\n", histSize);
+		//printf(1, "%d\n", histSize);
 		if (ourComp(buf, "history")==0){
-			print_history(historyLst);   		
+			if(ourComp (buf,"history -l")==0){//to check that there is integer in buf[11]
+				int hist_index = atoi(buf+11);//buf+11 is the offset to the number
+				if (hist_index>15){
+					printf(2, "%s\n", "Error: Max index is 15!");
+				}
+				else{
+					activateHistoryCommand(historyLst, hist_index);
+				}
+			}
+			else{
+			print_history(historyLst);
+			}   		
 		}
     	else if(fork1() == 0){
       		runcmd(parsecmd(buf));

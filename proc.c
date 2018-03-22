@@ -6,6 +6,9 @@
 #include "x86.h"
 #include "proc.h"
 #include "spinlock.h"
+char ** varsArray;
+char ** valsArray; 
+int numOfDefined = 0;
 
 struct {
   struct spinlock lock;
@@ -532,3 +535,26 @@ procdump(void)
     cprintf("\n");
   }
 }
+
+int setVariable(char* variable, char* value){
+  if (numOfDefined == 32)
+    return -1;
+  else{
+    varsArray[numOfDefined] = variable;
+    valsArray[numOfDefined] = value;
+    return 0;
+    }
+
+  }
+
+int getVariable(char* variable, char* value){
+
+
+
+
+  return 0;
+  }
+
+int remVariable(char* variable){
+  return 0;
+  }

@@ -104,9 +104,9 @@ extern int sys_wait(void);
 extern int sys_write(void);
 extern int sys_uptime(void);
 extern int sys_yield(void);
-extern int sys_setVariable(void)
-extern int sys_getVariable(void)
-extern int sys_remVariable(void) 
+extern int sys_setVariable(void);
+extern int sys_getVariable(void);
+extern int sys_remVariable(void);
 
 
 static int (*syscalls[])(void) = {

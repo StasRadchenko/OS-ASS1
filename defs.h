@@ -188,9 +188,9 @@ void            clearpteu(pde_t *pgdir, char *uva);
 
 // OS 182 ASS1.2
 
-int		setVariable(char* variable, char* value)
-int 		getVariable(char* variable, char* value)
-int 		remVariable(char* variable)
+int		setVariable(char* variable, char* value);
+int 		getVariable(char* variable, char* value);
+int 		remVariable(char* variable);
 
 
 // number of elements in fixed-size array

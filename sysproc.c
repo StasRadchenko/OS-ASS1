@@ -7,7 +7,6 @@
 #include "mmu.h"
 #include "proc.h"
 
-
 int sys_yield(void)
 {
   yield(); 
@@ -95,4 +94,28 @@ sys_uptime(void)
   xticks = ticks;
   release(&tickslock);
   return xticks;
+}
+
+int sys_setVariable(void){
+	char * var;
+	char * val;
+	if(argstr(0, &var) < 0 || argstr(1, &val) < 0)
+    	return -1;
+
+    return setVariable (var,val);
+
+
+
+}
+
+int sys_getVariable(void){
+
+	return 0;
+	return 0;
+}
+
+int sys_remVariable(void){
+
+	return 0;
+	return 0;
 }

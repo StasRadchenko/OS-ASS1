@@ -4,6 +4,7 @@
 #include "user.h"
 #include "fcntl.h"
 
+
 // Parsed command representation
 #define EXEC  1
 #define REDIR 2
@@ -259,6 +260,11 @@ main(void)
         printf(2, "cannot cd %s\n", buf+3);
       continue;
     }
+    printf (1, "%d\n" , setVariable ("x","23"));  //debbug of vars datastructure
+    char * val = NULL;
+    getVariable("x",val);
+    printf(1,"%s\n",val);
+
     if (strlen(buf)>MAX_LINE_LEN){
     	printf(2, "%s\n", "Error: Command is to long, more than 128 chars");
     }

@@ -103,15 +103,14 @@ int sys_setVariable(void){
     	return -1;
 
     return setVariable (var,val);
-
-
-
 }
 
 int sys_getVariable(void){
-
-	return 0;
-	return 0;
+	char * var;
+	char * val;
+	if(argstr(0, &var) < 0 || argstr(1, &val) < 0)
+    	return -1;	
+	return getVariable (var , vla);
 }
 
 int sys_remVariable(void){

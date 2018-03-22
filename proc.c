@@ -6,6 +6,18 @@
 #include "x86.h"
 #include "proc.h"
 #include "spinlock.h"
+
+//;;;;;;;;;;;;;;;;;HELPER FUNCTION SECTION;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+int strComp(char * target, char * toComp){
+  int len_comp = strlen (toComp);
+  char copy [len_comp];
+  int i;
+  for (i = 0 ; i< len_comp ; i++){
+    copy[i] = target[i];
+  }
+  return strcmp(toComp,copy);
+}
+//;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 char ** varsArray;
 char ** valsArray; 
 int numOfDefined = 0;
@@ -539,18 +551,27 @@ procdump(void)
 int setVariable(char* variable, char* value){
   if (numOfDefined == 32)
     return -1;
-  else{
-    varsArray[numOfDefined] = variable;
-    valsArray[numOfDefined] = value;
-    return 0;
-    }
+  
+  varsArray[numOfDefined] = variable;
+  valsArray[numOfDefined] = value;
+  numOfDefined = numOfDefined + 1;
+  return 0;
 
   }
 
 int getVariable(char* variable, char* value){
-
-
-
+  if (numOfDefined == 0)
+    return -1;
+  int j;
+  int found = 0;
+  for (j = 0 ; j<numOfDefined ; j++){
+    if (strComp (varsArray[j],variable) == 0){
+      found = 1;
+      value = valsArray [j];
+    }
+  }
+  if (found == 0)
+    return -1;
 
   return 0;
   }

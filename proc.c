@@ -6,17 +6,45 @@
 #include "x86.h"
 #include "proc.h"
 #include "spinlock.h"
+#define NULL (0)
 
 //;;;;;;;;;;;;;;;;;HELPER FUNCTION SECTION;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-int strComp(char * target, char * toComp){
-  int len_comp = strlen (toComp);
-  char copy [len_comp];
-  int i;
-  for (i = 0 ; i< len_comp ; i++){
-    copy[i] = target[i];
-  }
-  return strcmp(toComp,copy);
+int
+ourLen(const char *str)
+{
+    const char *s;
+    for (s = str; *s; ++s);
+    return (s - str)-1;
 }
+
+int ourStrComp(const char * string1,const char *string2)
+{
+    for (int i = 0; ; i++)
+    {
+        if (string1[i] != string2[i])
+        {
+            return string1[i] < string2[i] ? -1 : 1;
+        }
+
+        if (string1[i] == '\0')
+        {
+            return 0;
+        }
+    }
+}
+
+char * ourStrCopy(char *target, const char *source)
+{
+        int i;
+
+        for(i = 0; source[i] != '\0'; ++i)
+                target[i] = source[i];
+        target[i] = source[i];
+
+        return target;
+}
+
+
 //;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 char ** varsArray;
 char ** valsArray; 
@@ -551,9 +579,13 @@ procdump(void)
 int setVariable(char* variable, char* value){
   if (numOfDefined == 32)
     return -1;
-  
-  varsArray[numOfDefined] = variable;
-  valsArray[numOfDefined] = value;
+  int varLen = ourLen(variable);
+  int valLen = ourLen(value);
+  char varBuf[varLen];
+  char valBuf[valLen];
+  varsArray[numOfDefined] = ourStrCopy (varBuf,variable);
+  valsArray[numOfDefined] = ourStrCopy (valBuf,value);
+
   numOfDefined = numOfDefined + 1;
   return 0;
 
@@ -565,7 +597,7 @@ int getVariable(char* variable, char* value){
   int j;
   int found = 0;
   for (j = 0 ; j<numOfDefined ; j++){
-    if (strComp (varsArray[j],variable) == 0){
+    if (ourStrComp (varsArray[j],variable) == 0){
       found = 1;
       value = valsArray [j];
     }

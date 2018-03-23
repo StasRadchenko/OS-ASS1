@@ -153,7 +153,7 @@ getcmd(char *buf, int nbuf)
 	  return 0;
 }
 
-
+//:::::::::::::::::HISTORY FUNCTIONS STRUCT RELATED;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 //the method adds the next history command link to the history linked-list data structure.
 // historyLst - pointer to the head of the list, dataBuf - pointer to the command buffer.
  hist* histAppandTail(hist* historyLst, char * dataBuf){
@@ -237,6 +237,28 @@ void activateHistoryCommand(hist* history, int index){
       	}
 }
 
+//;;;;;;;;;;;;;;;;;END HISTORY SECTION;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+//;;;;;;;;;;;;;;;;;HELPER FUNCTIONS;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+int
+ourLength(const char *str)
+{
+    const char *s;
+    for (s = str; *s; ++s);
+    return (s - str)-1;
+}
+
+char * ourStrCopy(char *target, const char *source)
+{
+        int i;
+
+        for(i = 0; source[i] != '\0'; ++i)
+                target[i] = source[i];
+        target[i] = source[i];
+
+        return target;
+}
+//;;;;;;;;;;;;;;;;;END HELPER FUNCTIONS;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 int
 main(void)
 {		
@@ -260,10 +282,12 @@ main(void)
         printf(2, "cannot cd %s\n", buf+3);
       continue;
     }
-    printf (1, "%d\n" , setVariable ("x","23"));  //debbug of vars datastructure
-    char * val = NULL;
-    getVariable("x",val);
-    printf(1,"%s\n",val);
+
+  printf (1, "%d\n" , setVariable ("x","23"));  //debbug of vars datastructure
+  char * val = NULL;
+  getVariable("x",val);
+  printf(1,"%s\n",val);
+
 
     if (strlen(buf)>MAX_LINE_LEN){
     	printf(2, "%s\n", "Error: Command is to long, more than 128 chars");

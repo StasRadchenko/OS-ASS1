@@ -110,7 +110,7 @@ int sys_getVariable(void){
 	char * val;
 	if(argstr(0, &var) < 0 || argstr(1, &val) < 0)
     	return -1;	
-	return getVariable (var , vla);
+	return getVariable (var , val);
 }
 
 int sys_remVariable(void){

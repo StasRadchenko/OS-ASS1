@@ -283,11 +283,20 @@ main(void)
       continue;
     }
 
+//;;;;debugging section;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+  char val[128];
   printf (1, "%d\n" , setVariable ("x","23"));  //debbug of vars datastructure
-  char * val = NULL;
-  getVariable("x",val);
-  printf(1,"%s\n",val);
-
+  printf (1, "%d\n" , setVariable ("y","history"));
+  printf(1,"%d\n",getVariable("x",val));
+  printf(1,"%s\n", val);
+  printf (1, "%d\n" , setVariable ("x","FUCKK"));
+  printf(1,"%d\n",getVariable("x",val));
+  printf(1,"%s\n", val);
+  //printf(1,"%d\n",getVariable("x",val));
+  //printf(1,"%d\n",remVariable("x"));
+  //printf(1,"%d\n",getVariable("y",val));
+  
+//;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
     if (strlen(buf)>MAX_LINE_LEN){
     	printf(2, "%s\n", "Error: Command is to long, more than 128 chars");

@@ -109,12 +109,13 @@ int sys_getVariable(void){
 	char * var;
 	char * val;
 	if(argstr(0, &var) < 0 || argstr(1, &val) < 0)
-    	return -1;	
+    		return -1;	
 	return getVariable (var , val);
 }
 
 int sys_remVariable(void){
-
-	return 0;
-	return 0;
+	char * var;
+	if(argstr(0, &var) < 0)
+    		return -1;
+	return remVariable (var);
 }

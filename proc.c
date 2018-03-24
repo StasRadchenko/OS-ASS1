@@ -6,8 +6,10 @@
 #include "x86.h"
 #include "proc.h"
 #include "spinlock.h"
-#define NULL (0)
-
+//;;;;;;;;;;;;;;;;;Data structures;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+char varsArray[32][128];
+char valsArray[32][128]; 
+int numOfDefined = 0;
 //;;;;;;;;;;;;;;;;;HELPER FUNCTION SECTION;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 int
 ourLen(const char *str)
@@ -17,20 +19,11 @@ ourLen(const char *str)
     return (s - str)-1;
 }
 
-int ourStrComp(const char * string1,const char *string2)
+int ourStrComp(const char * p,const char *q)
 {
-    for (int i = 0; ; i++)
-    {
-        if (string1[i] != string2[i])
-        {
-            return string1[i] < string2[i] ? -1 : 1;
-        }
-
-        if (string1[i] == '\0')
-        {
-            return 0;
-        }
-    }
+    while(*p && *p == *q)
+    p++, q++;
+    return (uchar)*p - (uchar)*q;
 }
 
 char * ourStrCopy(char *target, const char *source)
@@ -44,11 +37,16 @@ char * ourStrCopy(char *target, const char *source)
         return target;
 }
 
+void fixContainers (int index){
+  int j;
+  for (j = index ; j < numOfDefined - 1 ; j++){
+    ourStrCopy(varsArray[j],varsArray[j+1]);
+    ourStrCopy(valsArray[j],valsArray[j+1]);
+
+  }  
+}
 
 //;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-char ** varsArray;
-char ** valsArray; 
-int numOfDefined = 0;
 
 struct {
   struct spinlock lock;
@@ -577,19 +575,30 @@ procdump(void)
 }
 
 int setVariable(char* variable, char* value){
-  if (numOfDefined == 32)
-    return -1;
-  int varLen = ourLen(variable);
-  int valLen = ourLen(value);
-  char varBuf[varLen];
-  char valBuf[valLen];
-  varsArray[numOfDefined] = ourStrCopy (varBuf,variable);
-  valsArray[numOfDefined] = ourStrCopy (valBuf,value);
-
-  numOfDefined = numOfDefined + 1;
+  int j;
+  int temp;
+  int found = 0;
+  for (j = 0; j<numOfDefined ; j++){
+    if (ourStrComp (varsArray[j],variable) == 0){
+      temp = j;
+      found = 1;
+      break;
+    }
+  }
+  if (found == 1){
+    ourStrCopy (valsArray[temp],value);
+  }
+  else{
+    if (numOfDefined == 32)
+      return -1;   
+    ourStrCopy (varsArray[numOfDefined],variable);
+    ourStrCopy (valsArray[numOfDefined],value);
+    numOfDefined = numOfDefined + 1;
+    
+  }
   return 0;
 
-  }
+}
 
 int getVariable(char* variable, char* value){
   if (numOfDefined == 0)
@@ -599,15 +608,28 @@ int getVariable(char* variable, char* value){
   for (j = 0 ; j<numOfDefined ; j++){
     if (ourStrComp (varsArray[j],variable) == 0){
       found = 1;
-      value = valsArray [j];
+      ourStrCopy (value,valsArray [j]);
     }
   }
   if (found == 0)
     return -1;
-
   return 0;
   }
 
 int remVariable(char* variable){
+  if (numOfDefined == 0)
+    return -1;
+  int j;
+  int found = 0;
+  for (j = 0 ; j < numOfDefined ; j++){
+    if (ourStrComp (varsArray[j],variable) == 0){
+      found = 1;
+      fixContainers(j);
+      numOfDefined = numOfDefined - 1;
+    }
+  }
+  if (found == 0)
+    return -1;
   return 0;
   }
+

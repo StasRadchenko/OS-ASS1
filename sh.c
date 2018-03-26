@@ -257,6 +257,87 @@ char * ourStrCopy(char *target, const char *source)
 
         return target;
 }
+
+//copies a source string from index <from> to index <to> (not including source[to])
+char * boundStrCopy(char *target, const char *source, int from, int to){
+	int i, j=0;
+	for (i=from; i<to; i++){
+		target[j] = source[i];
+		j++;
+	}
+	target[i] = '\0';
+	return target;
+}
+//////////////////////////set var helpers///////////////////////////
+int findEqualIndex(char * buff){
+	int ans;
+	char* beforeEq;
+	beforeEq = strchr(buff, '=');
+	ans = strlen(buff) - strlen(beforeEq);
+	return ans;
+}
+
+char * getVarName(char * buff){
+	int i;
+	int max = findEqualIndex(buff);
+	char* copy = malloc(max+1);
+	for (i=0; i<max; i++){
+		copy[i] = buff[i];
+	}
+	copy[max] = '\0';
+	return copy;
+}
+
+
+
+char * getVarValue(char * buff){
+	char* ret = strchr(buff, '=');
+	return ret+1;
+}
+/////////////////////////////get var helpers////////////////////////////
+int findDollarIndex(char* buff){
+	int ans;
+	char* beforeEq;
+	beforeEq = strchr(buff, '$');
+	ans = strlen(buff) - strlen(beforeEq);
+	return ans;
+}
+
+//char * fixDollarBuffer(char* buff){
+//	int i=0, j=0;
+//	char tempBuf[100];
+//	char varName[32]
+	//ourStrCopy(tempBuf, buff);
+//	while (i<strlen(buff)){
+//		if (buff[i] != '$'){
+//			tempBuf[j] = buff[i];
+//			j++;
+//			i++;
+//		}
+//		else{
+//			ourStrCopy(varName, parseVarNameAfterDollar(buff+i+1));
+//			boundStrCopy(tempBuf[j], getVariable(varName), 0, strlen(getVariable(varName)));
+//			j+=strlen(getVariable(varName));
+//			i++;
+//		}
+//	}
+//}
+
+char * parseVarNameAfterDollar(char* buff){
+	int j, i=0;
+	char* varName;
+	while(i < strlen(buff) && buff[i]!=' '){
+		i++;
+	}
+	varName = malloc(i+1);
+	for (j=0; j<i; j++){
+		varName[j]=buff[j];
+	}
+	varName[i] = '\0';
+	return varName;
+}
+
+
 //;;;;;;;;;;;;;;;;;END HELPER FUNCTIONS;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 int
@@ -284,14 +365,21 @@ main(void)
     }
 
 //;;;;debugging section;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+	char test1[] = "var=3";
+	//char test2[] = "echo $var";
+	setVariable(getVarName(test1), getVarValue(test1));
+	//printf(1, "%s\n", toCopy);
+   	//printf(1, "%d\n", findDollarIndex(test1));
+   	//printf(1, "%s\n", parseVarNameAfterDollar(test1+6));
+   	//printf(1, "%s\n", getVarValue(test1));
   char val[128];
-  printf (1, "%d\n" , setVariable ("x","23"));  //debbug of vars datastructure
-  printf (1, "%d\n" , setVariable ("y","history"));
-  printf(1,"%d\n",getVariable("x",val));
-  printf(1,"%s\n", val);
-  printf (1, "%d\n" , setVariable ("x","FUCKK"));
-  printf(1,"%d\n",getVariable("x",val));
-  printf(1,"%s\n", val);
+  //printf (1, "%d\n" , setVariable ("x","23"));  //debbug of vars datastructure
+  //printf (1, "%d\n" , setVariable ("y","history"));
+  //printf(1,"%d\n",getVariable("x",val));
+  //printf(1,"%s\n", val);
+  //printf (1, "%d\n" , setVariable ("x","FUCKK"));
+  printf(1,"%s\n",getVariable("var",val));
+  //printf(1,"%s\n", val);
   //printf(1,"%d\n",getVariable("x",val));
   //printf(1,"%d\n",remVariable("x"));
   //printf(1,"%d\n",getVariable("y",val));
@@ -304,6 +392,9 @@ main(void)
 	else{
 		historyLst = histAppandTail(historyLst, buf);
 		//printf(1, "%d\n", histSize);
+		if (findEqualIndex(buf)>0){
+			setVariable(getVarName(buf), getVarValue(buf));
+		}
 		if (ourComp(buf, "history")==0){
 			if(ourComp (buf,"history -l")==0){//to check that there is integer in buf[11]
 				int hist_index = atoi(buf+11);//buf+11 is the offset to the number

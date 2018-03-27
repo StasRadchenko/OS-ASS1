@@ -193,6 +193,6 @@ int 		getVariable(char* variable, char* value);
 int 		remVariable(char* variable);
 
 //OS 182 ASS1 task 2
-int 		wait2(int pid, int* wtime, int* rtime, int* iotime)
+int 		wait2(int pid, int* wtime, int* rtime, int* iotime);
 // number of elements in fixed-size array
 #define NELEM(x) (sizeof(x)/sizeof((x)[0]))

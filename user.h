@@ -27,7 +27,7 @@ int yield(void);
 int setVariable(char* variable, char* value);
 int getVariable(char* variable, char* value);
 int remVariable(char* variable);
-int wait2(int pid, int* wtime, int* rtime, int* iotime)
+int wait2(int pid, int* wtime, int* rtime, int* iotime);
 // ulib.c
 int stat(char*, struct stat*);
 char* strcpy(char*, char*);

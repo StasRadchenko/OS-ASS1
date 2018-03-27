@@ -352,6 +352,53 @@ wait(void)
   }
 }
 
+//;;;;;;;;;;;;;;;;;WAIT 2 TASK 2;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+int 
+wait2(int pid, int* wtime, int* rtime, int* iotime){
+  struct proc *p;
+  int havekids;
+  struct proc *curproc = myproc();
+  
+  acquire(&ptable.lock);
+  for(;;){
+    // Scan through table looking for exited children.
+    havekids = 0;
+    for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
+      if(p->pid != pid)
+        continue;
+      havekids = 1;
+      if(p->state == ZOMBIE){
+        // Found one.
+        *rtime = p->rtime;
+        *iotime = p->iotime;
+        *wtime = p->etime - p->ctime - p->iotime - p->rtime;
+        //pid = p->pid;
+        kfree(p->kstack);
+        p->kstack = 0;
+        freevm(p->pgdir);
+        p->pid = 0;
+        p->parent = 0;
+        p->name[0] = 0;
+        p->killed = 0;
+        p->state = UNUSED;
+        release(&ptable.lock);
+        return pid;
+      }
+    }
+
+    // No point waiting if we don't have any children.
+    if(!havekids || curproc->killed){
+      release(&ptable.lock);
+      return -1;
+    }
+
+    // Wait for children to exit.  (See wakeup1 call in proc_exit.)
+    sleep(curproc, &ptable.lock);  //DOC: wait-sleep
+  }
+}
+
+//;;;;;;;;;;;;;;;;;TASK 2 END;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 //PAGEBREAK: 42
 // Per-CPU process scheduler.
 // Each CPU calls scheduler() after setting itself up.
@@ -363,6 +410,7 @@ wait(void)
 void
 scheduler(void)
 {
+#if defined(DEFAULT)
   struct proc *p;
   struct cpu *c = mycpu();
   c->proc = 0;
@@ -392,8 +440,14 @@ scheduler(void)
       c->proc = 0;
     }
     release(&ptable.lock);
-
   }
+ #endif
+ #if defined(FCFS)
+    struct proc *p;
+    struct cpu *c = mycpu();
+
+
+ #endif  
 }
 
 // Enter scheduler.  Must hold only ptable.lock

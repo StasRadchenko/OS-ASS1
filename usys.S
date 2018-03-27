@@ -32,3 +32,5 @@ SYSCALL(uptime)
 SYSCALL(setVariable)
 SYSCALL(getVariable)
 SYSCALL(remVariable)
+SYSCALL(wait2)
+

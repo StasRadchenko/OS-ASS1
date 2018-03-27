@@ -291,8 +291,12 @@ char * getVarName(char * buff){
 
 
 char * getVarValue(char * buff){
-	char* ret = strchr(buff, '=');
-	return ret+1;
+	int afterEqIndex = findEqualIndex(buff)+1;
+	int size = strlen(strchr(buff, '='))-1;
+	char* ret = malloc(size);
+	boundStrCopy(ret, buff, afterEqIndex, strlen(buff)-1);
+	ret[size-1] = '\0';
+	return ret;
 }
 
 /////////////////////////////get var helpers////////////////////////////
@@ -303,11 +307,11 @@ int findDollarIndex(char* buff){
 	ans = strlen(buff) - strlen(beforeEq);
 	return ans;
 }
-
+//gets the variable name pointed by a '$' sign.
 char * parseVarNameAfterDollar(char* buff){
 	int j, i=0;
 	char* varName;
-	while(i < strlen(buff) && buff[i]!=' '){
+	while(i < strlen(buff) && buff[i]!=' ' && buff[i]!='$' && buff[i]!='\n' && buff[i]!='\t' && buff[i]!='\r'){
 		i++;
 	}
 	varName = malloc(i+1);
@@ -317,15 +321,16 @@ char * parseVarNameAfterDollar(char* buff){
 	varName[i] = '\0';
 	return varName;
 }
-
+//this Method fixes the buffer as it replaces variables with their values.
 char * fixDollarBuffer(char* buff){
 	int i=0, j=0;
 	char tempBuf[100];
 	char varName[128];
 	char value[128];
+	memset(tempBuf, 0, 100);
 	//ourStrCopy(tempBuf, buff);
-		printf(1, "buff at the begining: %s\n", buff);
-		printf(1, "buff size at the begining: %d\n", strlen(buff));
+		//printf(1, "buff at the begining: %s\n", buff);
+		//printf(1, "buff size at the begining: %d\n", strlen(buff));
 	while (i<strlen(buff)){
 		if (buff[i] != '$'){
 			tempBuf[j] = buff[i];
@@ -336,17 +341,23 @@ char * fixDollarBuffer(char* buff){
 			memset(varName, 0, 128);
 			memset(value, 0, 128);
 			ourStrCopy(varName, parseVarNameAfterDollar(buff+i+1));
-				printf(1 ,"variable name is: %s\n", varName);
+				//printf(1 ,"variable name is: %s\n", varName);
 			getVariable(varName, value);
-				printf(1 ,"variable value is: %s\n", value);
+				//printf(1 ,"variable value is: %s\n", value);
 			boundStrCopy(tempBuf+j, value, 0, strlen(value));
 			j+=strlen(value);
 			i+=strlen(varName)+1;
 		}
 	}
-		printf(1, "temp buf before copy: %s\n", tempBuf);
+		//printf(1, "temp buf before copy: %s\n", tempBuf);
 	ourStrCopy(buff, tempBuf);
-		printf(1, "buff after copy: %s\n", buff);
+		//printf(1, "buff after copy: %s\n", buff);
+	//After the initial fix checks whether any Dollars were left in the buffer.
+	//If so, it recursively fixes the buffer.
+	if (strchr(buff, '$')!=NULL){ 
+		fixDollarBuffer(buff);
+	}
+
 	return buff;
 }
 
@@ -418,13 +429,13 @@ main(void)
 			//printf(1, "real fix: %s\n", buf);
 		}
 		if (strchr(buf, '=')!=NULL){
-				char tempVal[128];
-				printf(1, "Found Assignment\n");
-				printf(1, "var name: %s\n", getVarName(buf));
-				printf(1, "var value: %s\n", getVarValue(buf));
+				//char tempVal[128];
+				//printf(1, "Found Assignment\n");
+				//printf(1, "var name: %s\n", getVarName(buf));
+				//printf(1, "var value: %s\n", getVarValue(buf));
 			setVariable(getVarName(buf), getVarValue(buf));
-				getVariable(getVarName(buf), tempVal);
-				printf(1, "received value: %s\n", tempVal);
+				//getVariable(getVarName(buf), tempVal);
+				//printf(1, "received value: %s\n", tempVal);
 		}
 		else if (ourComp(buf, "history")==0){
 			if(ourComp (buf,"history -l")==0){//to check that there is integer in buf[11]

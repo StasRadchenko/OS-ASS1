@@ -120,6 +120,14 @@ void            userinit(void);
 int             wait(void);
 void            wakeup(void*);
 void            yield(void);
+// OS 182 ASS1 task 1.2
+int		setVariable(char* variable, char* value);
+int 		getVariable(char* variable, char* value);
+int 		remVariable(char* variable);
+
+//OS 182 ASS1 task 2
+int 		wait2(int pid, int* wtime, int* rtime, int* iotime);
+void		inc_ticks(void);
 
 // swtch.S
 void            swtch(struct context**, struct context*);
@@ -186,13 +194,6 @@ void            switchkvm(void);
 int             copyout(pde_t*, uint, void*, uint);
 void            clearpteu(pde_t *pgdir, char *uva);
 
-// OS 182 ASS1 task 1.2
 
-int		setVariable(char* variable, char* value);
-int 		getVariable(char* variable, char* value);
-int 		remVariable(char* variable);
-
-//OS 182 ASS1 task 2
-int 		wait2(int pid, int* wtime, int* rtime, int* iotime);
 // number of elements in fixed-size array
 #define NELEM(x) (sizeof(x)/sizeof((x)[0]))

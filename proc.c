@@ -46,6 +46,7 @@ void fixContainers (int index){
   }  
 }
 
+
 //;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 struct {
@@ -129,7 +130,9 @@ allocproc(void)
 found:
   p->state = EMBRYO;
   p->pid = nextpid++;
-
+  p->ctime = ticks;   
+  p->iotime = 0;      
+  p->rtime = 0;
   release(&ptable.lock);
 
   // Allocate kernel stack.
@@ -686,4 +689,21 @@ int remVariable(char* variable){
     return -1;
   return 0;
   }
+
+  //;;;;;;;;;;;;;;;;;TICKER INCREMENT;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+void 
+inc_ticks(void) {
+
+  struct proc *p;
+  acquire(&ptable.lock);
+
+  for (p = ptable.proc; p < &ptable.proc[NPROC]; p++)
+    if (p->state == SLEEPING)
+      p->iotime ++;
+    else if (p->state == RUNNING)
+      p->rtime ++;
+
+  release(&ptable.lock);
+}
+//;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 

@@ -450,6 +450,43 @@ scheduler(void)
     release(&ptable.lock);
   }
  #endif
+ #ifdef FCFS
+    struct proc *p;
+    struct cpu *c = mycpu();
+    c->proc = 0;
+  
+    for(;;){
+      // Enable interrupts on this processor.
+      sti();
+
+      // Loop over process table looking for process to run.
+      acquire(&ptable.lock);
+      for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
+        if(p->state != RUNNABLE)
+          continue;
+      // Switch to chosen process.  It is the process's job
+      // to release ptable.lock and then reacquire it
+      // before jumping back to us.
+
+      //Found an process that sould run init runtime and discovery time
+        p->curRTime = ticks;
+        p->curDisctime = ticks;
+
+        c->proc = p;
+
+        while(p->state == RUNNABLE){
+          switchuvm(p);
+          p->state = RUNNING;
+          swtch(&(c->scheduler), p->context);
+          switchkvm();
+        }
+        // Process is done running for now.
+        // It should have changed its p->state before coming back.
+        c->proc = 0;
+      }
+      release(&ptable.lock);
+  }
+ #endif  
 
 }
 
@@ -697,13 +734,13 @@ inc_ticks(void) {
   struct proc *p;
   acquire(&ptable.lock);
 
-  for (p = ptable.proc; p < &ptable.proc[NPROC]; p++){
+  for (p = ptable.proc; p < &ptable.proc[NPROC]; p++)
     if (p->state == SLEEPING)
       p->iotime++;
     else if (p->state == RUNNING)
       p->rtime++;
       p->curRTime++;
-  }
+  
 
   release(&ptable.lock);
 }

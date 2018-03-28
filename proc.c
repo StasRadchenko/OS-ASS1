@@ -307,6 +307,7 @@ exit(void)
 
   // Jump into the scheduler, never to return.
   curproc->state = ZOMBIE;
+  curproc->etime = ticks;
   sched();
   panic("zombie exit");
 }
@@ -375,7 +376,6 @@ wait2(int pid, int* wtime, int* rtime, int* iotime){
         *rtime = p->rtime;
         *iotime = p->iotime;
         *wtime = p->etime - p->ctime - p->iotime - p->rtime;
-        //pid = p->pid;
         kfree(p->kstack);
         p->kstack = 0;
         freevm(p->pgdir);
@@ -413,7 +413,7 @@ wait2(int pid, int* wtime, int* rtime, int* iotime){
 void
 scheduler(void)
 {
-#if defined(DEFAULT)
+#ifdef DEFAULT
   struct proc *p;
   struct cpu *c = mycpu();
   c->proc = 0;
@@ -427,17 +427,22 @@ scheduler(void)
     for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
       if(p->state != RUNNABLE)
         continue;
-
       // Switch to chosen process.  It is the process's job
       // to release ptable.lock and then reacquire it
       // before jumping back to us.
+
+      //Found an process that sould run init runtime and discovery time
+      p->curRTime = ticks;
+      p->curDisctime = ticks;
+
       c->proc = p;
-      switchuvm(p);
-      p->state = RUNNING;
 
-      swtch(&(c->scheduler), p->context);
-      switchkvm();
-
+      while(p->curRTime - p->curDisctime <= QUANTUM && p->state == RUNNABLE){
+        switchuvm(p);
+        p->state = RUNNING;
+        swtch(&(c->scheduler), p->context);
+        switchkvm();
+      }
       // Process is done running for now.
       // It should have changed its p->state before coming back.
       c->proc = 0;
@@ -445,12 +450,7 @@ scheduler(void)
     release(&ptable.lock);
   }
  #endif
- #if defined(FCFS)
-    struct proc *p;
-    struct cpu *c = mycpu();
 
-
- #endif  
 }
 
 // Enter scheduler.  Must hold only ptable.lock
@@ -697,11 +697,13 @@ inc_ticks(void) {
   struct proc *p;
   acquire(&ptable.lock);
 
-  for (p = ptable.proc; p < &ptable.proc[NPROC]; p++)
+  for (p = ptable.proc; p < &ptable.proc[NPROC]; p++){
     if (p->state == SLEEPING)
-      p->iotime ++;
+      p->iotime++;
     else if (p->state == RUNNING)
-      p->rtime ++;
+      p->rtime++;
+      p->curRTime++;
+  }
 
   release(&ptable.lock);
 }

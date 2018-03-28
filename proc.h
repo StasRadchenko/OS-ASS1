@@ -13,6 +13,8 @@ struct cpu {
 extern struct cpu cpus[NCPU];
 extern int ncpu;
 
+
+
 //PAGEBREAK: 17
 // Saved registers for kernel context switches.
 // Don't need to save all the segment registers (%cs, etc),
@@ -53,7 +55,11 @@ struct proc {
   int etime;                  //end time
   int iotime;                 //total time of waiting for I/O
   int rtime;                  //total running time of the process
-
+  //;;;;;;;;;;;;;;;;;Helper fields, current discovery of the process and current runtime;;;;;;;;;;;;;
+  int curRTime;               //Current running time 
+  int curDisctime;            //When was discovered
+  //;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+    
 };
 
 // Process memory is laid out contiguously, low addresses first:

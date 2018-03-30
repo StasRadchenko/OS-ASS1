@@ -196,7 +196,18 @@ getcmd(char *buf, int nbuf)
  	}
  }
 
-//compares a given string to a target's prefix.
+int compPrefix(char * target, char * toComp){
+	int i;
+	int ans = 0;
+	if (strlen(target)>strlen(toComp))
+		return -1;
+	for (i=0; i<strlen(target); i++){
+		if (target[i]!=toComp[i])
+			ans = -1;
+	}
+	return ans;
+}
+
 int ourComp(char * target, char * toComp){
 	int len_comp = strlen (toComp);
 	char copy [len_comp];
@@ -207,34 +218,16 @@ int ourComp(char * target, char * toComp){
 	return strcmp(toComp,copy);
 }
 
-void activateHistoryCommand(hist* history, int index){
-	int i;
-	hist* cur = history;
-	for (i=0; i<index; i++){
-		cur = cur->next;
-	}
-	
-	//printf(2, "debug0: %s\n", cur->histBuff);
-	if (ourComp(cur->histBuff, "history")==0){
-			if(ourComp (cur->histBuff,"history -l")==0){//to check that there is integer in buf[11]
-				int hist_index = atoi(cur->histBuff+11);//buf+11 is the offset to the number
-				if (hist_index>15){
-					printf(2, "%s\n", "Error: Max index is 15!");
-				}
-				else{
-					//printf(2, "debug1: %s\n", cur->histBuff);
-					activateHistoryCommand(history, hist_index);
-				}
-			}
-			else{
-				//printf(2, "debug2: %s\n", cur->histBuff);
-				print_history(history);
-			}   		
-		}
-    	else if(fork1() == 0){
-    		//printf(2, "debug3: %s ", cur->histBuff);
-      		runcmd(parsecmd(cur->histBuff));
-      	}
+
+char * ourStrCopy(char *target, const char *source)
+{
+        int i;
+
+        for(i = 0; source[i] != '\0'; ++i)
+                target[i] = source[i];
+        target[i] = source[i];
+
+        return target;
 }
 
 //;;;;;;;;;;;;;;;;;END HISTORY SECTION;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -247,16 +240,6 @@ ourLength(const char *str)
     return (s - str)-1;
 }
 
-char * ourStrCopy(char *target, const char *source)
-{
-        int i;
-
-        for(i = 0; source[i] != '\0'; ++i)
-                target[i] = source[i];
-        target[i] = source[i];
-
-        return target;
-}
 
 //copies a source string from index <from> to index <to> (not including source[to])
 char * boundStrCopy(char *target, const char *source, int from, int to){
@@ -328,9 +311,6 @@ char * fixDollarBuffer(char* buff){
 	char varName[128];
 	char value[128];
 	memset(tempBuf, 0, 100);
-	//ourStrCopy(tempBuf, buff);
-		//printf(1, "buff at the begining: %s\n", buff);
-		//printf(1, "buff size at the begining: %d\n", strlen(buff));
 	while (i<strlen(buff)){
 		if (buff[i] != '$'){
 			tempBuf[j] = buff[i];
@@ -341,17 +321,13 @@ char * fixDollarBuffer(char* buff){
 			memset(varName, 0, 128);
 			memset(value, 0, 128);
 			ourStrCopy(varName, parseVarNameAfterDollar(buff+i+1));
-				//printf(1 ,"variable name is: %s\n", varName);
 			getVariable(varName, value);
-				//printf(1 ,"variable value is: %s\n", value);
 			boundStrCopy(tempBuf+j, value, 0, strlen(value));
 			j+=strlen(value);
 			i+=strlen(varName)+1;
 		}
 	}
-		//printf(1, "temp buf before copy: %s\n", tempBuf);
 	ourStrCopy(buff, tempBuf);
-		//printf(1, "buff after copy: %s\n", buff);
 	//After the initial fix checks whether any Dollars were left in the buffer.
 	//If so, it recursively fixes the buffer.
 	if (strchr(buff, '$')!=NULL){ 
@@ -361,8 +337,30 @@ char * fixDollarBuffer(char* buff){
 	return buff;
 }
 
+//history - the head of the history linked list
+//index - the command index saved in the history.
+// buff - the main command buffer (pointer).
+// The method fixes the command buffer according to the chosen command from the history.
+void activateHistoryCommand(hist* history, int index, char* buff){
+	int i;
+	hist* cur = history;
+	for (i=0; i<index; i++){ //finds the relevant command.
+		cur = cur->next;
+	}
+	memset(buff, 0, sizeof(buff)); //cleans the buffer.
+	ourStrCopy(buff, cur->histBuff); // copies the relevant command to the buffer.
+	if (strchr(buff, '$')!=NULL){ //fixes the presence of global variables.
+		fixDollarBuffer(buff);
+	}
+	if (compPrefix("history -l", buff)==0){ //recursively fixes to the last command reference.
+		int cmdInd = atoi(buff+11);
+		activateHistoryCommand(history, cmdInd, buff);
+	}
+	else if (ourComp(buff, "history")==0){
+		print_history(history);
+	}
 
-
+}
 
 //;;;;;;;;;;;;;;;;;END HELPER FUNCTIONS;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -402,18 +400,6 @@ main(void)
 	//printf(1, "%s\n", toCopy);
    	//printf(1, "%d\n", findDollarIndex(test1));
    	//printf(1, "%s\n", parseVarNameAfterDollar(test1+6));
-  	//char val[128];
-  	//printf (1, "%d\n" , setVariable ("x","23"));  //debbug of vars datastructure
-  	//printf (1, "%d\n" , setVariable ("y","history"));
-  	//printf(1,"%d\n",getVariable("x",val));
-  	//printf(1,"%s\n", val);
-  	//printf (1, "%d\n" , setVariable ("x","FUCKK"));
-  	//printf(1,"%d\n",getVariable("var",val));
-  	//printf(1, "%s\n", val);
-  	//printf(1,"%s\n", val);
-  	//printf(1,"%d\n",getVariable("x",val));
-  	//printf(1,"%d\n",remVariable("x"));
-  	//printf(1,"%d\n",getVariable("y",val));
   
 //;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -422,38 +408,33 @@ main(void)
     }
 	else{
 		historyLst = histAppandTail(historyLst, buf);
-		//printf(1, "%d\n", histSize);
 		if (strchr(buf, '$')!=NULL){
-			//printf(1, "before fix: %s\n", buf);
 			fixDollarBuffer(buf);
-			//printf(1, "real fix: %s\n", buf);
 		}
-		if (strchr(buf, '=')!=NULL){
-				//char tempVal[128];
-				//printf(1, "Found Assignment\n");
-				//printf(1, "var name: %s\n", getVarName(buf));
-				//printf(1, "var value: %s\n", getVarValue(buf));
-			setVariable(getVarName(buf), getVarValue(buf));
-				//getVariable(getVarName(buf), tempVal);
-				//printf(1, "received value: %s\n", tempVal);
-		}
-		else if (ourComp(buf, "history")==0){
+
+		if (ourComp(buf, "history")==0){
 			if(ourComp (buf,"history -l")==0){//to check that there is integer in buf[11]
 				int hist_index = atoi(buf+11);//buf+11 is the offset to the number
 				if (hist_index>15){
 					printf(2, "%s\n", "Error: Max index is 15!");
 				}
 				else{
-					activateHistoryCommand(historyLst, hist_index);
+					activateHistoryCommand(historyLst, hist_index, buf);
 				}
 			}
 			else{
 			print_history(historyLst);
 			}   		
 		}
-    	else if(fork1() == 0){
-      		runcmd(parsecmd(buf));
-      	} 	
+
+		if (strchr(buf, '=')!=NULL){
+			setVariable(getVarName(buf), getVarValue(buf));
+		}
+    	else if (compPrefix("history", buf)!=0){
+    		if (fork1() == 0){
+      			runcmd(parsecmd(buf));
+      		} 
+      	}
     }
     wait();
   }

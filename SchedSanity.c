@@ -2,9 +2,9 @@
 #include "user.h"
 
 //;;;;;;;;;;;;;;;;;Define section;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-#define NUM_OF_PROCESS 20
+#define NUM_OF_PROCESS 10
 #define MEDIUM_LOOP_CALC 100000
-#define LARGE_LOOP_CALC 1000000
+#define LARGE_LOOP_CALC 2000000
 #define MEDIUM_LOOP_IO 1000
 #define LARGE_LOOP_IO 10000
 //;;;;;;;;;;;;;;;;;END OF DEFINE SECTION;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -101,6 +101,5 @@ int main(int argc, char *argv[])
 
 	exit();
 }
-
 
 

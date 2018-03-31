@@ -13,3 +13,6 @@
 #define FSSIZE       1000  // size of file system in blocks
 #define QUANTUM	     5
 #define ALPHA	     0.5
+#define HIGH_FACTOR 0.75	//	high priority decay level
+#define NORMAL_FACTOR 1	//	normal priority decay level
+#define LOW_FACTOR 1.25	//	low priority decay level

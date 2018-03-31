@@ -60,7 +60,8 @@ struct proc {
   int curDisctime;            //When was discovered
   //;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;SRT;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   float A;
-    
+  //;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;CFSD;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+  double p_decay; //priority decay
 };
 
 // Process memory is laid out contiguously, low addresses first:

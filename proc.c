@@ -134,6 +134,7 @@ found:
   p->iotime = 0;      
   p->rtime = 0;
   p->A = QUANTUM;
+  p->p_decay = NORMAL_FACTOR;
   release(&ptable.lock);
 
   // Allocate kernel stack.
@@ -244,6 +245,7 @@ fork(void)
   np->sz = curproc->sz;
   np->parent = curproc;
   *np->tf = *curproc->tf;
+  np->p_decay  = curproc->p_decay;
 
   // Clear %eax so that fork returns 0 in the child.
   np->tf->eax = 0;
@@ -538,6 +540,60 @@ scheduler(void)
       release(&ptable.lock);
     }
  #endif
+ #ifdef CFSD
+    struct proc *p;
+    struct cpu *c = mycpu();
+    c->proc = 0;
+  
+    for(;;){
+      // Enable interrupts on this processor.
+      sti();
+
+      // Loop over process table looking for process to run.
+      acquire(&ptable.lock);
+      double minimal_ratio = 0;
+      double cur_ratio; 
+      struct proc* min = 0; //at start minimial is null
+      for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
+        if(p->state != RUNNABLE)
+          continue;
+        cur_ratio = (p->rtime * p->p_decay)/(p->rtime + (ticks - p->ctime - p->iotime - p->rtime));
+        if (min == 0){
+          min = p;
+          minimal_ratio = cur_ratio;
+        }
+        else{
+          if (minimal_ratio > cur_ratio)
+            min = p;
+            minimal_ratio = cur_ratio;
+        }
+      }
+
+      if (min!=0){
+        p = min;
+      // Switch to chosen process.  It is the process's job
+      // to release ptable.lock and then reacquire it
+      // before jumping back to us.
+
+      //Found an process that sould run init runtime and discovery time
+        p->curRTime = ticks;
+        p->curDisctime = ticks;
+
+        c->proc = p;
+
+        while(p->curRTime - p->curDisctime <= QUANTUM && p->state == RUNNABLE){
+          switchuvm(p);
+          p->state = RUNNING;
+          swtch(&(c->scheduler), p->context);
+          switchkvm();
+        }
+        // Process is done running for now.
+        // It should have changed its p->state before coming back.
+        c->proc = 0;
+      }
+      release(&ptable.lock);
+    }
+ #endif
 
 }
 
@@ -781,6 +837,30 @@ int remVariable(char* variable){
   if (found == 0)
     return -1;
   return 0;
+  }
+
+  int set_priority(int priority){
+    struct proc *p = myproc();
+    if (priority == 1){
+      acquire(&ptable.lock);
+      p->p_decay = HIGH_FACTOR;
+      release(&ptable.lock);
+      return 0;
+    }
+    else if (priority == 2){
+      acquire(&ptable.lock);
+      p->p_decay = NORMAL_FACTOR;
+      release(&ptable.lock);
+      return 0;
+    }
+    else if (priority == 3){
+      acquire(&ptable.lock);
+      p->p_decay = LOW_FACTOR;
+      release(&ptable.lock);
+      return 0;
+    }
+
+    return -1;
   }
 
   //;;;;;;;;;;;;;;;;;TICKER INCREMENT;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

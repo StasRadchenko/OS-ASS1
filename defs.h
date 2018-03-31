@@ -128,6 +128,8 @@ int 		remVariable(char* variable);
 //OS 182 ASS1 task 2
 int 		wait2(int pid, int* wtime, int* rtime, int* iotime);
 void		inc_ticks(void);
+//OS 182 ASS1 task 3
+int 		set_priority(int priority);
 
 // swtch.S
 void            swtch(struct context**, struct context*);

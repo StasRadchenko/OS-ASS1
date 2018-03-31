@@ -137,7 +137,7 @@ static int (*syscalls[])(void) = {
 [SYS_getVariable] sys_getVariable,
 [SYS_remVariable] sys_remVariable,
 [SYS_wait2]   sys_wait2,
-[sys_set_priority]  sys_set_priority,
+[SYS_set_priority]  sys_set_priority,
 };
 
 void

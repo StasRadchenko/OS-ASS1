@@ -58,7 +58,8 @@ struct proc {
   //;;;;;;;;;;;;;;;;;Helper fields, current discovery of the process and current runtime;;;;;;;;;;;;;
   int curRTime;               //Current running time 
   int curDisctime;            //When was discovered
-  //;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+  //;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;SRT;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+  float A;
     
 };
 

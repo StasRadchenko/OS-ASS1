@@ -133,6 +133,7 @@ found:
   p->ctime = ticks;   
   p->iotime = 0;      
   p->rtime = 0;
+  p->A = QUANTUM;
   release(&ptable.lock);
 
   // Allocate kernel stack.
@@ -486,7 +487,57 @@ scheduler(void)
       }
       release(&ptable.lock);
   }
- #endif  
+ #endif
+ #ifdef SRT
+    struct proc *p;
+    struct cpu *c = mycpu();
+    c->proc = 0;
+  
+    for(;;){
+      // Enable interrupts on this processor.
+      sti();
+
+      // Loop over process table looking for process to run.
+      acquire(&ptable.lock);
+      struct proc* min = 0; //at start minimial is null
+      for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
+        if(p->state != RUNNABLE)
+          continue;
+
+        if (min == 0){
+          min = p;
+        }
+        else{
+          if (p->A < min->A)
+            min = p;
+        }
+      }
+
+      if (min!=0){
+        p = min;
+      // Switch to chosen process.  It is the process's job
+      // to release ptable.lock and then reacquire it
+      // before jumping back to us.
+
+      //Found an process that sould run init runtime and discovery time
+        p->curRTime = ticks;
+        p->curDisctime = ticks;
+
+        c->proc = p;
+
+        while(p->curRTime - p->curDisctime <= QUANTUM && p->state == RUNNABLE){
+          switchuvm(p);
+          p->state = RUNNING;
+          swtch(&(c->scheduler), p->context);
+          switchkvm();
+        }
+        // Process is done running for now.
+        // It should have changed its p->state before coming back.
+        c->proc = 0;
+      }
+      release(&ptable.lock);
+    }
+ #endif
 
 }
 
@@ -522,6 +573,9 @@ yield(void)
 {
   acquire(&ptable.lock);  //DOC: yieldlock
   myproc()->state = RUNNABLE;
+  if (myproc()->rtime >= QUANTUM){ //SRT - updates the A.
+    myproc()->A = (ALPHA + 1) * myproc()->A;
+  }
   sched();
   release(&ptable.lock);
 }
@@ -573,7 +627,9 @@ sleep(void *chan, struct spinlock *lk)
   // Go to sleep.
   p->chan = chan;
   p->state = SLEEPING;
-
+  if (p->rtime >= QUANTUM){ //SRT - updates the A.
+    p->A = (ALPHA + 1) * p->A;
+  }
   sched();
 
   // Tidy up.
@@ -734,13 +790,13 @@ inc_ticks(void) {
   struct proc *p;
   acquire(&ptable.lock);
 
-  for (p = ptable.proc; p < &ptable.proc[NPROC]; p++)
+  for (p = ptable.proc; p < &ptable.proc[NPROC]; p++){
     if (p->state == SLEEPING)
       p->iotime++;
     else if (p->state == RUNNING)
       p->rtime++;
       p->curRTime++;
-  
+  }
 
   release(&ptable.lock);
 }

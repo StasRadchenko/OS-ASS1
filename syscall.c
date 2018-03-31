@@ -108,6 +108,7 @@ extern int sys_setVariable(void);
 extern int sys_getVariable(void);
 extern int sys_remVariable(void);
 extern int sys_wait2(void);
+extern int sys_set_priority(void);
 
 static int (*syscalls[])(void) = {
 [SYS_fork]    sys_fork,
@@ -136,6 +137,7 @@ static int (*syscalls[])(void) = {
 [SYS_getVariable] sys_getVariable,
 [SYS_remVariable] sys_remVariable,
 [SYS_wait2]   sys_wait2,
+[sys_set_priority]  sys_set_priority,
 };
 
 void

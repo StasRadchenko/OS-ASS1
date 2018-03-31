@@ -33,4 +33,5 @@ SYSCALL(setVariable)
 SYSCALL(getVariable)
 SYSCALL(remVariable)
 SYSCALL(wait2)
+SYSCALL(set_priority)
 

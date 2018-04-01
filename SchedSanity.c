@@ -2,17 +2,21 @@
 #include "user.h"
 
 //;;;;;;;;;;;;;;;;;Define section;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-#define NUM_OF_PROCESS 10
-#define MEDIUM_LOOP_CALC 100000
-#define LARGE_LOOP_CALC 2000000
+#define NUM_OF_PROCESS 15
+#define MEDIUM_LOOP_CALC 1000000
+#define LARGE_LOOP_CALC 20000000
 #define MEDIUM_LOOP_IO 1000
 #define LARGE_LOOP_IO 10000
 //;;;;;;;;;;;;;;;;;END OF DEFINE SECTION;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-unsigned int factorial(unsigned int n) 
+long int factorial(int dig)
 {
-    if (n == 0)
-       return 1;
-    return n * factorial(n - 1);
+    long int facto;
+    if (dig>1)
+        facto = dig * factorial(dig-1);
+    else 
+        facto = 1;
+    
+    return facto;
 }
 
 
@@ -20,7 +24,7 @@ void medium_cpu_usage(){
 	int j;
 	int k = 0;
 	for (j = 0; j<MEDIUM_LOOP_CALC; j++){
-		k++;
+		k = k + factorial(30);
 	}
 
 }
@@ -29,7 +33,7 @@ void large_cpu_usage(){
 	int j;
 	int k = 0;
 	for (j = 0; j<LARGE_LOOP_CALC; j++){
-		k++;
+		k = k + factorial(30);
 	}
 
 }
@@ -57,10 +61,14 @@ int main(int argc, char *argv[])
 
 	int pids[NUM_OF_PROCESS];
 
+
 	for(int i=0; i< NUM_OF_PROCESS; i++){
 		int pid;
 	    pid = fork();
 		if(pid == 0){
+			#ifdef CFSD
+				set_priority(i%3 + 1);
+			#endif
 			if(i%4 == 0)
 				medium_cpu_usage(); //Calculation only - These processes will perform asimple calculation within a medium sized loop
 			if(i%4 == 1)
